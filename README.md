@@ -34,6 +34,16 @@
 
 ## 安装
 
+### 方式一：使用 uv（推荐）
+
+```bash
+# 创建虚拟环境并安装依赖
+uv venv
+uv pip install -r requirements.txt
+```
+
+### 方式二：使用 pip
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -61,6 +71,10 @@ cp .env.example .env
 双击运行 `TurnstileSolver.bat` 或执行：
 
 ```bash
+# 使用 uv（推荐）
+uv run python api_solver.py --browser_type camoufox --thread 5 --debug
+
+# 或使用传统方式
 python api_solver.py --browser_type camoufox --thread 5 --debug
 ```
 
@@ -71,6 +85,10 @@ python api_solver.py --browser_type camoufox --thread 5 --debug
 新开一个终端，运行：
 
 ```bash
+# 使用 uv（推荐）
+uv run grok.py
+
+# 或使用传统方式
 python grok.py
 ```
 
