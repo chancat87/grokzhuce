@@ -12,13 +12,14 @@ load_dotenv()
 class TurnstileService:
     """Turnstile验证服务类"""
 
-    def __init__(self, solver_url="http://127.0.0.1:5072"):
+    def __init__(self, solver_url="http://127.0.0.1:5072", proxies=None):
         """
         初始化Turnstile服务
         """
         self.yescaptcha_key = os.getenv('YESCAPTCHA_KEY', '').strip()
         self.solver_url = solver_url
         self.yescaptcha_api = "https://api.yescaptcha.com"
+        self.proxies = proxies or {}
 
     def create_task(self, siteurl, sitekey):
         """
@@ -35,7 +36,7 @@ class TurnstileService:
                     "websiteKey": sitekey
                 }
             }
-            response = requests.post(url, json=payload)
+            response = requests.post(url, json=payload, proxies=self.proxies)
             response.raise_for_status()
             data = response.json()
             if data.get('errorId') != 0:
@@ -44,7 +45,7 @@ class TurnstileService:
         else:
             # 使用本地 Turnstile Solver
             url = f"{self.solver_url}/turnstile?url={siteurl}&sitekey={sitekey}"
-            response = requests.get(url)
+            response = requests.get(url, proxies=self.proxies)
             response.raise_for_status()
             return response.json()['taskId']
 
@@ -63,7 +64,7 @@ class TurnstileService:
                         "clientKey": self.yescaptcha_key,
                         "taskId": task_id
                     }
-                    response = requests.post(url, json=payload)
+                    response = requests.post(url, json=payload, proxies=self.proxies)
                     response.raise_for_status()
                     data = response.json()
 
@@ -86,7 +87,7 @@ class TurnstileService:
                 else:
                     # 使用本地 Turnstile Solver
                     url = f"{self.solver_url}/result?id={task_id}"
-                    response = requests.get(url)
+                    response = requests.get(url, proxies=self.proxies)
                     response.raise_for_status()
                     data = response.json()
                     captcha = data.get('solution', {}).get('token', None)

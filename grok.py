@@ -6,8 +6,21 @@ import traceback
 from urllib.parse import urljoin, urlparse
 from curl_cffi import requests
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 
 from g import EmailService, TurnstileService, UserAgreementService, NsfwSettingsService
+
+# 加载环境变量
+load_dotenv()
+
+# 获取代理配置
+PROXY_URL = os.getenv("PROXY_URL", "").strip()
+if PROXY_URL:
+    PROXIES = {"http": PROXY_URL, "https": PROXY_URL}
+    print(f"[*] 使用代理: {PROXY_URL}")
+else:
+    PROXIES = {}
+    print("[*] 未配置代理，使用直连")
 
 # 基础配置
 # 基础 URL（用于 API 请求和 Solver）
@@ -39,10 +52,7 @@ def get_random_chrome_profile():
             f"Chrome/{profile['version']} Safari/537.36"
         )
     return profile["impersonate"], ua
-PROXIES = {
-    # "http": "http://127.0.0.1:10808",
-    # "https": "http://127.0.0.1:10808"
-}
+
 
 # 动态获取的全局变量
 config = {
@@ -283,6 +293,7 @@ def register_single_thread(debug_mode=False, single_run=False):
                                 sso_rw=sso_rw or "",
                                 impersonate=impersonate_fingerprint,
                                 user_agent=account_user_agent,
+                                proxies=PROXIES,
                             )
                             tos_hex = tos_result.get("hex_reply") or ""
                             if debug_mode:
@@ -300,6 +311,7 @@ def register_single_thread(debug_mode=False, single_run=False):
                                 sso_rw=sso_rw or "",
                                 impersonate=impersonate_fingerprint,
                                 user_agent=account_user_agent,
+                                proxies=PROXIES,
                             )
                             nsfw_hex = nsfw_result.get("hex_reply") or ""
                             nsfw_ok = nsfw_result.get("ok", False)
@@ -311,7 +323,11 @@ def register_single_thread(debug_mode=False, single_run=False):
                             # 立即进行二次验证 (enable_unhinged)
                             if debug_mode:
                                 print(f"[DEBUG] [{thread_id}] 启用 Unhinged...")
-                            unhinged_result = nsfw_service.enable_unhinged(sso, sso_rw or "")
+                            unhinged_result = nsfw_service.enable_unhinged(
+                                sso=sso,
+                                sso_rw=sso_rw or "",
+                                proxies=PROXIES,
+                            )
                             unhinged_ok = unhinged_result.get("ok", False)
                             if debug_mode:
                                 print(f"[DEBUG] [{thread_id}] Unhinged 结果: ok={unhinged_ok}")
@@ -385,7 +401,7 @@ def main():
     print("[*] 正在初始化...")
     start_url = site_url
     print(f"[DEBUG] 请求 URL: {start_url}")
-    with requests.Session(impersonate=DEFAULT_IMPERSONATE) as s:
+    with requests.Session(impersonate=DEFAULT_IMPERSONATE, proxies=PROXIES) as s:
         try:
             print("[DEBUG] 正在获取页面...")
             html = s.get(start_url, timeout=30).text
@@ -407,7 +423,7 @@ def main():
             print(f"[DEBUG] 找到 {len(js_urls)} 个 JS 文件")
             for js_url in js_urls:
                 print(f"[DEBUG] 正在请求 JS: {js_url}")
-                js_content = s.get(js_url, timeout=30).text
+                js_content = s.get(js_url, timeout=30, proxies=PROXIES).text
                 match = re.search(r'7f[a-fA-F0-9]{40}', js_content)
                 if match:
                     config["action_id"] = match.group(0)

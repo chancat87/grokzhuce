@@ -25,6 +25,7 @@ class NsfwSettingsService:
         user_agent: Optional[str] = None,
         cf_clearance: Optional[str] = None,
         timeout: int = 15,
+        proxies: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """
         启用 always_show_nsfw_content。
@@ -88,6 +89,7 @@ class NsfwSettingsService:
                 data=data,
                 impersonate=impersonate or "chrome120",
                 timeout=timeout,
+                proxies=proxies or {},
             )
             hex_reply = response.content.hex()
             grpc_status = response.headers.get("grpc-status")
@@ -124,6 +126,7 @@ class NsfwSettingsService:
         impersonate: str = "chrome120",
         user_agent: Optional[str] = None,
         timeout: int = 30,
+        proxies: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """
         使用帖子方法开启 Unhinged 模式（二次验证）。
@@ -153,6 +156,7 @@ class NsfwSettingsService:
                 data=data,
                 impersonate=impersonate,
                 timeout=timeout,
+                proxies=proxies or {},
             )
             return {
                 "ok": response.status_code == 200,

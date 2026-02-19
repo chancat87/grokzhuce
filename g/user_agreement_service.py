@@ -25,6 +25,7 @@ class UserAgreementService:
         user_agent: Optional[str] = None,
         cf_clearance: Optional[str] = None,
         timeout: int = 15,
+        proxies: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """
         同意 TOS 版本。
@@ -85,6 +86,7 @@ class UserAgreementService:
                 data=data,
                 impersonate=impersonate or "chrome120",
                 timeout=timeout,
+                proxies=proxies or {},
             )
             hex_reply = response.content.hex()
             grpc_status = response.headers.get("grpc-status")

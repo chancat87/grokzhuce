@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 
 class EmailService:
-    def __init__(self):
+    def __init__(self, proxies=None):
         load_dotenv()
         self.worker_domain = os.getenv("WORKER_DOMAIN")
         self.freemail_token = os.getenv("FREEMAIL_TOKEN")
@@ -14,6 +14,7 @@ class EmailService:
             raise ValueError("Missing: WORKER_DOMAIN or FREEMAIL_TOKEN")
         self.base_url = f"https://{self.worker_domain}"
         self.headers = {"Authorization": f"Bearer {self.freemail_token}"}
+        self.proxies = proxies or {}
 
     def create_email(self):
         """创建临时邮箱 GET /api/generate"""
@@ -21,6 +22,7 @@ class EmailService:
             res = requests.get(
                 f"{self.base_url}/api/generate",
                 headers=self.headers,
+                proxies=self.proxies,
                 timeout=10
             )
             if res.status_code == 200:
@@ -44,6 +46,7 @@ class EmailService:
                     f"{self.base_url}/api/emails",
                     params={"mailbox": email},
                     headers=self.headers,
+                    proxies=self.proxies,
                     timeout=10
                 )
                 if debug:
@@ -91,6 +94,7 @@ class EmailService:
                 f"{self.base_url}/api/mailboxes",
                 params={"address": address},
                 headers=self.headers,
+                proxies=self.proxies,
                 timeout=10
             )
             return res.status_code == 200 and res.json().get("success")
